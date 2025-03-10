@@ -27,8 +27,10 @@ namespace Infrastructure.Contexts
     {
         private new SchoolTenantInfo TenantInfo { get; set; }
 
-        protected BaseDbContext(IMultiTenantContextAccessor<TenantInfo> tenantContextAccessor, DbContextOptions options) : base(tenantContextAccessor, options)
+        protected BaseDbContext(IMultiTenantContextAccessor<SchoolTenantInfo> tenantContextAccessor, DbContextOptions options)
+                : base(tenantContextAccessor, options)
         {
+            TenantInfo = tenantContextAccessor.MultiTenantContext.TenantInfo;
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -38,6 +40,11 @@ namespace Infrastructure.Contexts
                 optionsBuilder.UseSqlServer(TenantInfo.ConnectionString, options => 
                     options.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName));
             }
+        }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
         }
     }
 }
